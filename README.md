@@ -12,14 +12,18 @@ _mkpw_ is written in Rust.
 
 ## How-to use
 To generate a password e.g. for github.com, type
+
     mkpw github.com
+
 _mkpw_ will ask for a passphrase and a confirmation of this passphrase (to
 avoid typos) and display a password. Thank to the use of _ncurses_, neither
 will the password be echoed while being typed in, nor will the password stay
 on screen longer than necessary.
 
 To reproduce the password for login, the command-line switch _-n_ can be used:
+
     mkpw -n github.com
+
 This will make _mkpw_ ask for the passphrase only once for convenience, as
 typos are not a severe issue in this case.
 Avoid using _-n_ while generating new passwords though.
