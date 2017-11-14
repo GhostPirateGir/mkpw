@@ -1,0 +1,10 @@
+[package]
+name = "mkpw"
+version = "0.1.0"
+authors = ["till@0xaa55.org"]
+
+[dependencies]
+pancurses = "0.12"
+rand = "0.3"
+md-5 = "0.5"
+base64 = "0.7"
