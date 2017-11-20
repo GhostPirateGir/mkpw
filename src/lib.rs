@@ -10,6 +10,8 @@ pub struct Mkpw {
     window: pancurses::Window,
     domain: Option<String>,
     confirmation: bool,
+    urlsafe: bool,
+    pwlen: usize,
 }
 
 static MASKLEN: i32 = 11;
@@ -85,8 +87,15 @@ impl Mkpw {
     }
 
     fn generate_pw(&self, passphrase: &String) -> String {
-        let mut hash = base64::encode(&Md5::digest(&format!("{}:{}", self.domain.as_ref().unwrap(), &passphrase).as_bytes()));
-        hash.split_off(10);
+        //let dgst = base64::encode(&Md5::digest(&format!("{}:{}", self.domain.as_ref().unwrap(), &passphrase).as_bytes()));
+        let dgst = Md5::digest(&format!("{}:{}", self.domain.as_ref().unwrap(), &passphrase).as_bytes());
+        let mut hash: String;
+        if self.urlsafe {
+            hash = base64::encode_config(&dgst, base64::URL_SAFE);
+        } else {
+            hash = base64::encode(&dgst);
+        }
+        hash.split_off(self.pwlen);
         hash
     }
 
@@ -95,24 +104,50 @@ impl Mkpw {
         pancurses::curs_set(0);
         pancurses::noecho();
 
+        // Default values
         let mut domain: Option<String> = None;
         let mut confirmation = true;
+        let mut urlsafe = false;
+        let mut lenres: Result<usize, String> = Ok(10);
 
+        // skip program name
         args.next();
-        for arg in args {
-            match arg.as_ref() {
+        let mut arg = args.next();
+        while arg != None {
+            match arg.unwrap().as_ref() {
                 "-n" => confirmation = false,
-                _ => domain = Some(String::from(arg.trim())),
+                "-a" => urlsafe = true,
+                "-l" => {
+                    let len: Option<String> = args.next();
+                    if len == None {
+                        lenres = Err(String::from("Option -l requires a length parameter!"))
+                    } else {
+                        let lenunwrap = len.unwrap();
+                        let parselen = lenunwrap.parse::<usize>();
+                        if parselen.is_ok() {
+                            lenres = Ok(parselen.ok().unwrap());
+                        } else {
+                            lenres = Err(format!("Failed to parse parameter '{}' to option -l as integer value: {}", lenunwrap, parselen.err().unwrap()))
+                        }
+                    }
+                }
+                //_ => domain = Some(String::from(arg.unwrap().trim())),
+                x => domain = Some(String::from(x)),
             }
+            arg = args.next();
         }
 
         if domain == None {
             Err(String::from("Domain missing!"))
+        } else if lenres.is_err() {
+            Err(lenres.err().unwrap())
         } else {
             Ok(Mkpw {
                 window: window,
                 domain: domain,
                 confirmation: confirmation,
+                urlsafe: urlsafe,
+                pwlen: lenres.unwrap(),
             })
         }
     }

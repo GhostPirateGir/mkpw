@@ -1,9 +1,9 @@
 # mkpw
-Command-line tool for safe password generation
+Command-line tool for secure password generation
 
 _mkpw_ aims to provide password for use primarily for online accounts.
-_mkpw_ enables users to safely use password derived from a single secret
-passphrase for all of their accounts.
+_mkpw_ enables users to use password derived from a single secret passphrase
+for all of their accounts in a secure manner.
 Passwords generated with _mkpw_ are secure (hard to guess and unique for
 every account) and easy to manage (only one passphrase to remember, password
 derived from account's domain name).
@@ -20,6 +20,9 @@ avoid typos) and display a password. Thank to the use of _ncurses_, neither
 will the password be echoed while being typed in, nor will the password stay
 on screen longer than necessary.
 
+The security of passwords generated with _mkpw_ depends on the secret 
+passphrase chosen, so be sure to choose a strong passphrase.
+
 To reproduce the password for login, the command-line switch _-n_ can be used:
 
     mkpw -n github.com
@@ -28,8 +31,23 @@ This will make _mkpw_ ask for the passphrase only once for convenience, as
 typos are not a severe issue in this case.
 Avoid using _-n_ while generating new passwords though.
 
-The security of passwords generated with _mkpw_ depends on the secret 
-passphrase chosen, so be sure to choose a strong passphrase.
+_mkpw_ shortens the base64 representation of the generated hash to 10
+characters by default. If longer (or shorter, which is really really not
+recommended!) passwords are desired, the command-line switch _-l_ can be used:
+
+    mkpw -l 12 github.com
+
+Passwords have a maximum of passwords is 20 characters, as the 16 byte output
+of the MD5 algorithm produces 20 characters when encoded in base64.
+
+The base64 alphabet contains the characters '+' and '/'.
+These may lead to problems in passwords on some sites with strange password
+requirements.
+As an alternative, _mkpw_ provides the _-a_ command-line switch to generate
+passwords using base64's _URL-safe_ alphabet instead, which replaces '+' and 
+'/' with '-' and '\_':
+
+    mkpw -a github.com
 
 ## Technical background
 _mkpw_ uses a concatenation of the domain name and the secret passphrase
